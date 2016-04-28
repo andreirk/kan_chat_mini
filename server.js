@@ -13,7 +13,7 @@ http.createServer(function(req,res ) {
             break;
 
         case '/subscribe':
-            chat.subscribe(req.res);
+            chat.subscribe(req, res);
 
             //..
             break;
@@ -37,8 +37,24 @@ function sendFile(fileName,res){
             res.statusCode = 500;
             res.end("Server error");
         });
-    fileStream.on("end", function() {
+    fileStream.on("readable", write);
 
-        res.end(fileName);
-    })
+    function  write() {
+
+        fileContent = fileStream.read();
+
+        if(fileContent && !res.write(fileContent)){
+
+            fileName.removeListener('readable', write);
+
+            res.once('drain', function() {
+                fileName.on('readable',write);
+                write();
+            });
+          //  var fileContent = fileStream.read();
+        //    res.end(fileContent);
+            // res.end();
+        }
+
+    }
 }
