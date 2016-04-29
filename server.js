@@ -19,8 +19,26 @@ http.createServer(function(req,res ) {
             break;
 
         case '/publish':
-            chat.publish('...');
-            //...
+
+            var body = '';
+
+            req
+                .on('readable', function() {
+                    body += req.read();
+                })
+                .on('end', function(){
+                    try {
+                        body = JSON.parse(body);
+                    } catch(e) {
+                        res.statusCode = 400;
+                        res.end("Bad Request");
+                        return;
+                    }
+
+                    chat.publish(body.message);
+                    res.end("ok");
+                });
+
             break;
 
         default:
@@ -33,28 +51,40 @@ http.createServer(function(req,res ) {
 function sendFile(fileName,res){
     var fileStream = fs.createReadStream(fileName);
     fileStream
-        .on('error', function(){
+        .on('error', function(err){
             res.statusCode = 500;
             res.end("Server error");
+            console.error(err);
         });
-    fileStream.on("readable", write);
 
-    function  write() {
+    fileStream.pipe(res);
 
-        fileContent = fileStream.read();
+    res.on('close', function(){
+        fileStream.destroy();
+    });
 
-        if(fileContent && !res.write(fileContent)){
+//    fileStream.on("readable", write);
 
-            fileName.removeListener('readable', write);
 
-            res.once('drain', function() {
-                fileName.on('readable',write);
-                write();
-            });
+
+    //function  write() {
+    //
+    //    fileContent = fileStream.read();
+    //
+    //    if(fileContent && !res.write(fileContent)){
+    //
+    //        fileName.removeListener('readable', write);
+    //
+    //        res.once('drain', function() {
+    //            fileName.on('readable',write);
+    //            write();
+    //        });
+
+
           //  var fileContent = fileStream.read();
         //    res.end(fileContent);
             // res.end();
         }
 
-    }
-}
+   // }
+//}
