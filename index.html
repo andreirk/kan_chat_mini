@@ -19,7 +19,7 @@
 <script>
 
     publish.onsubmit = function(){
-        var xhr = new XMLHttpRequest();
+        var xhr = ("onload" in new XMLHttpRequest()) ? XMLHttpRequest : XDomainRequest;
 
         xhr.open("POST", "/publish",true);
 
@@ -33,7 +33,7 @@
     subscribe();
 
     function subscribe(){
-        var xhr = new XMLHttpRequest();
+        var xhr  = ("onload" in new XMLHttpRequest()) ? XMLHttpRequest : XDomainRequest;
 
         xhr.open("GET", '/subscribe', true);
 
